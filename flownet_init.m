@@ -1,10 +1,6 @@
 function net = flownet_init(varargin)
 % FLOWNET_INIT  CNN model initialization 
 
-opts.scale = 1 ;
-opts.initBias = 0.1 ;
-opts.weightDecay = 1 ;
-opts.weightInitMethod = 'gaussian' ; 
 opts.batchNormalization = false ; 
 opts = vl_argparse(opts, varargin) ;
 
