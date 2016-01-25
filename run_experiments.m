@@ -1,7 +1,7 @@
 % function run_experiments()
 
 setup;
-net = flownet_init();
+net = flownet_s_init();
 net.initParams();
 fldb = get_fldb('sintel');
 stats = flownet_train(net, fldb, ...
