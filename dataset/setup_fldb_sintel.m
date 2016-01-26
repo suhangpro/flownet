@@ -5,10 +5,10 @@ function fldb = setup_fldb_sintel(datasetDir, varargin)
 
 opts.seed = 0;
 opts.type = 'clean'; % 'clean' | 'final'
-opts.ratio = [0.8 0.2]; % train:val ratio
+opts.split_file = ''; % 'sintel.split'
+opts.ratio = [0.8 0.2]; % train:val ratio, used only when split_file is empty
 opts = vl_argparse(opts,varargin); 
 
-assert(numel(opts.ratio)==2); 
 opts.ratio = opts.ratio/sum(opts.ratio); 
 fldb.rootDir = datasetDir; 
 fldb.meta.sets = {'train', 'val', 'test'}; 
@@ -79,11 +79,29 @@ assert(numel(fldb.frames.id)==max(fldb.frames.id));
 fldb.frames.id = [fldb.frames.id ...
   (numel(fldb.frames.id)+1):numel(fldb.frames.name)];
 
-% random split
-rng(opts.seed); 
-nTrain = round(opts.ratio(1)*numel(fldb.flows.id));
-inds = [ones(1,nTrain) 2*ones(1,numel(fldb.flows.id)-nTrain)];
-fldb.flows.set = inds(randperm(numel(fldb.flows.id)));
+% train/val/test split
+if isempty(opts.split_file),
+  % random split
+  rng(opts.seed);
+  n_flows = numel(fldb.flows.id);
+  nTrain = round(opts.ratio(1)*n_flows);
+  if numel(opts.ratio==2) || opts.ratio(3)==0,
+    nVal = n_flows-nTrain;
+    nTest = 0;
+  else
+    nVal = min(round(opts.ratio(2)*n_flows),n_flows-nTrain);
+    nTest = n_flows - nTrain - nVal;
+  end
+  inds = [ones(1,nTrain) 2*ones(1,nVal) 3*ones(1,nTest)];
+  fldb.flows.set = inds(randperm(n_flows));
+else
+  % read split from file
+  fid = fopen(opts.split_file);
+  texts = textscan(fid,'%s %d');
+  mapObj_flow_set = containers.Map(texts{1},texts{2});
+  fldb.flows.set = cellfun(@(s) mapObj_flow_set(s), ...
+    cellfun(@(s) cut_id_str(s), fldb.flows.name, 'UniformOutput', false));
+end
 
 end
 
