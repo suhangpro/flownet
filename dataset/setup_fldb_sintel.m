@@ -1,5 +1,5 @@
-function fldb = setup_sintel(datasetDir, varargin)
-% SETUP_SINTEL Build default fldb structure for Sintel dataset
+function fldb = setup_fldb_sintel(datasetDir, varargin)
+% SETUP_FLDB_SINTEL Build default fldb structure for Sintel dataset
 % 
 % Hang Su
 

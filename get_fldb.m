@@ -4,7 +4,7 @@ function [ fldb ] = get_fldb( datasetName, varargin )
 %   should be name of a directory under '/data'
 
 datasetDir = fullfile('data',datasetName);
-datasetFnName = ['setup_' datasetName];
+datasetFnName = ['setup_fldb_' datasetName];
 fldbPath = fullfile(datasetDir,'fldb.mat');
 
 if ~exist(datasetDir,'dir'), 
@@ -15,9 +15,9 @@ if exist(fldbPath,'file'),
     fldb = load(fldbPath);
 else
     if exist([datasetFnName '.m'],'file'),
-        fldb = eval([datasetFnName '(''' datasetDir ''')']);
+        fldb = eval([datasetFnName '(''' datasetDir ''',varargin{:})']);
     else
-        fldb = setup_dataset_fldb(datasetDir, varargin{:});
+        fldb = setup_fldb_generic(datasetDir, varargin{:});
     end
     save(fldbPath,'-struct','fldb');
 end
