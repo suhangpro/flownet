@@ -37,9 +37,9 @@ for i=1:numel(seqDirs),
   imNames = sort({files.name}); 
   fldb.frames.name = [fldb.frames.name cellfun(@(s) ...
     fullfile(currDir,seqDirs{i},s),imNames,'UniformOutput',false)];
-  fldb.frames.seqId = [fldb.frames.seqId ones(1,numel(imNames))*seqId];
+  fldb.frames.seqId = [fldb.frames.seqId ones(1,numel(imNames),'int32')*seqId];
 end
-fldb.frames.id = 1:numel(fldb.frames.name);
+fldb.frames.id = int32(1:numel(fldb.frames.name));
 
 % train & val -- flows 
 currDir = fullfile('training','flow'); 
@@ -59,7 +59,7 @@ end
 fldb.flows.im1 = cellfun(@(s) mapObj_im_id(s), ...
   cellfun(@(s) cut_id_str(s),fldb.flows.name, 'UniformOutput',false)); 
 fldb.flows.im2 = fldb.flows.im1 + 1; % assume flow on consecutive frames 
-fldb.flows.id = 1:numel(fldb.flows.name); 
+fldb.flows.id = int32(1:numel(fldb.flows.name)); 
 
 % test -- frames 
 currDir = fullfile('test',opts.type); 
@@ -73,7 +73,7 @@ for i=1:numel(seqDirs),
   imNames = sort({files.name}); 
   fldb.frames.name = [fldb.frames.name cellfun(@(s) ...
     fullfile(currDir,seqDirs{i},s),imNames,'UniformOutput',false)];
-  fldb.frames.seqId = [fldb.frames.seqId ones(1,numel(imNames))*seqId];
+  fldb.frames.seqId = [fldb.frames.seqId ones(1,numel(imNames),'int32')*seqId];
 end
 assert(numel(fldb.frames.id)==max(fldb.frames.id));
 fldb.frames.id = [fldb.frames.id ...
@@ -92,13 +92,13 @@ if isempty(opts.split_file),
     nVal = min(round(opts.ratio(2)*n_flows),n_flows-nTrain);
     nTest = n_flows - nTrain - nVal;
   end
-  inds = [ones(1,nTrain) 2*ones(1,nVal) 3*ones(1,nTest)];
+  inds = [ones(1,nTrain,'int32') 2*ones(1,nVal,'int32') 3*ones(1,nTest,'int32')];
   fldb.flows.set = inds(randperm(n_flows));
 else
   % read split from file
   fid = fopen(opts.split_file);
   texts = textscan(fid,'%s %d');
-  mapObj_flow_set = containers.Map(texts{1},texts{2});
+  mapObj_flow_set = containers.Map(texts{1},int32(texts{2}));
   fldb.flows.set = cellfun(@(s) mapObj_flow_set(s), ...
     cellfun(@(s) cut_id_str(s), fldb.flows.name, 'UniformOutput', false));
 end

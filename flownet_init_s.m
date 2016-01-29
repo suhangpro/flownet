@@ -1,13 +1,13 @@
-function net = flownet_s_init(varargin)
+function net = flownet_init_s(varargin)
 % FLOWNET_S_INIT  FlowNetS model initialization 
 
 net = dagnn.DagNN();
 
 % image pre-prosessing settings 
-net.meta.normalization.mode = 'multiplier'; 
 net.meta.normalization.multiplier = 64;
-net.meta.normalization.interpolation = 'bicubic' ;
-net.meta.normalization.averageImage = single([123.6591  116.7663  103.9318]);
+net.meta.normalization.interpolation = 'bilinear' ;
+net.meta.normalization.avgPixel = single([123.6591  116.7663  103.9318]);
+net.meta.normalization.convertFlowFmt = 'none';
 
 block = dagnn.Concat('dim',3);
 net.addLayer('im_concat', block, {'im1','im2'}, {'im_concat'}, {});

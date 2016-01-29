@@ -47,7 +47,7 @@ else                                                       % random subwins
     wins(3,:) = sz(2); wins(4,:) = sz(1); 
     wins(5,:) = rand(1,N)*(scales(2)-scales(1))+scales(1);
     wins(1:2,:) = round(rand(2,N).*bsxfun(@minus,round(bsxfun(@times,...
-        sz0(:),wins(5,:))),sz(:))+1);
+        flipud(sz0(:)),wins(5,:))),flipud(sz(:)))+1);
 end
 
 end
