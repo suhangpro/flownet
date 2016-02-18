@@ -5,7 +5,7 @@ function inputs = flownet_get_batch(fldb, batch, varargin)
 
 opts.multiplier = 64;
 opts.interpolation = 'bilinear' ;
-opts.avgPixel = single([123.6591  116.7663  103.9318]) ;
+opts.averageImage = single([123.6591  116.7663  103.9318]) ;
 opts.convertFlowFmt = '';
 
 opts.imageSize = [384 512] ;
@@ -86,8 +86,8 @@ for i=1:numel(batch),
   % TODO NOT_YET_IMPLEMENTED
   
   % deduct average pixel values
-  inputs{2} = bsxfun(@minus,inputs{2},reshape(opts.avgPixel,[1 1 3 1]));
-  inputs{4} = bsxfun(@minus,inputs{4},reshape(opts.avgPixel,[1 1 3 1]));
+  inputs{2} = bsxfun(@minus,inputs{2},reshape(opts.averageImage,[1 1 3 1]));
+  inputs{4} = bsxfun(@minus,inputs{4},reshape(opts.averageImage,[1 1 3 1]));
 end
 
 if ~isemtpy(opts.convertFlowFmt) && ~strcmpi(opts.convertFlowFmt,'none'),

@@ -6,7 +6,7 @@ net = dagnn.DagNN();
 % image pre-prosessing settings 
 net.meta.normalization.multiplier = 64;
 net.meta.normalization.interpolation = 'bilinear' ;
-net.meta.normalization.avgPixel = single([123.6591  116.7663  103.9318]);
+net.meta.normalization.averageImage = single([123.6591  116.7663  103.9318]);
 net.meta.normalization.convertFlowFmt = 'none';
 
 block = dagnn.Concat('dim',3);
@@ -36,7 +36,8 @@ net.addLayer('pred2', block, {'concat2'}, {'pred2'}, {'pred2_f', 'pred2_b'});
 %{
 block = dagnn.ConvTranspose('size',[7 7 2 2], 'initMethod','bilinear', 'frozen',true, ...
                             'hasBias', false, 'upsample',4, 'crop',[2 1 2 1]);
-net.addLayer('pred', block, {'pred2'}, {'pred'}, {'pred_f'});
+net.addLayer('pred', block, 'pred2', 'pred', 'pred_f');
+net.params(net.getParamIndex('pred_f')).learningRate = 0;
 %}
 
 % loss
@@ -73,8 +74,10 @@ net.addLayer(pred, block, {in_coarse}, {pred}, {[pred '_f'],[pred '_b']});
 
 block = dagnn.ConvTranspose('size', [2*up_x-1 2*up_x-1 pred_f_size(4) pred_f_size(4)], ...
     'crop', [ceil(up_x/2-0.5) floor(up_x/2-0.5) ceil(up_x/2-0.5) floor(up_x/2-0.5)], ...
-    'initMethod', 'bilinear', 'frozen', true, 'hasBias', false, 'upsample', up_x);
+    'initMethod', 'bilinear', 'hasBias', false, 'upsample', up_x);
 net.addLayer([pred '_up'], block, {pred}, {[pred '_up']}, {[pred '_up_f']});
+pidx = net.getParamIndex([pred '_up_f']); 
+net.params(pidx).learningRate = 0; 
 
 block = dagnn.ConvTranspose('size', deconv_f_sz, 'hasBias', true, 'upsample', up_x, ...
     'crop', [ceil((deconv_f_sz(1)-up_x)/2) floor((deconv_f_sz(1)-up_x)/2) ...
@@ -94,22 +97,26 @@ end
 function net = addLossLayer(net, pred, flow_gt, loss, down_x, pred_dim)
 
 block = dagnn.Conv('size', [1 1 pred_dim pred_dim], 'hasBias', false, ...
-    'stride', down_x, 'initMethod', 'one', 'frozen', true);
-net.addLayer([flow_gt '_' num2str(down_x)], block, {flow_gt}, ...
-    {[flow_gt '_' num2str(down_x)]}, {[flow_gt '_' num2str(down_x) '_f']});
+    'stride', down_x, 'initMethod', 'one');
+lName = [flow_gt '_' num2str(down_x)]; 
+net.addLayer(lName, block, flow_gt, lName, [lName '_f']);
+pidx = net.getParamIndex([lName '_f']);
+net.params(pidx).learningRate = 0; 
 
 block = dagnn.Loss('loss', 'l2');
-net.addLayer(loss, block, {pred, [flow_gt '_' num2str(down_x)]}, {loss}, {});
+net.addLayer(loss, block, {pred, lName}, loss);
 
 end
 
 function net = addWeightedLoss(net, out, loss_layers, ws)
 
 block = dagnn.Concat('dim', 1);
-net.addLayer([out '_concat'], block, loss_layers, {[out '_concat']}, {});
+net.addLayer([out '_concat'], block, loss_layers, [out '_concat']);
 
-block = dagnn.Conv('size', [numel(loss_layers) 1 1 1], 'hasBias', false, 'frozen', true);
-net.addLayer(out, block, {[out '_concat']}, {out}, {[out '_w']});
-net.params(net.getParamIndex([out '_w'])).value = single(ws(:));
+block = dagnn.Conv('size', [numel(loss_layers) 1 1 1], 'hasBias', false);
+net.addLayer(out, block, [out '_concat'], out, [out '_w']);
+pidx = net.getParamIndex([out '_w']);
+net.params(pidx).value = single(ws(:));
+net.params(pidx).learningRate = 0; 
 
 end
