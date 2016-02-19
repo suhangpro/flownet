@@ -1,5 +1,5 @@
-function net = flownet_init_s(varargin)
-% FLOWNET_S_INIT  FlowNetS model initialization 
+function net = flownet_init(varargin)
+% FLOWNET_INIT  FlowNet model initialization (FlowNetS)
 
 net = dagnn.DagNN();
 
@@ -48,6 +48,8 @@ net = addLossLayer(net, 'pred5', 'gt', 'loss5', 2^5, 2);
 net = addLossLayer(net, 'pred6', 'gt', 'loss6', 2^6, 2);
 net = addWeightedLoss(net, 'loss', {'loss2','loss3','loss4','loss5','loss6'}, ...
   [0.005 0.01 0.02 0.08 0.32]); 
+
+net.initParams(); 
 
 end
 

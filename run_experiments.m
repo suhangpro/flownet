@@ -1,9 +1,8 @@
 % function run_experiments()
 
 setup;
-net = flownet_init_s();
-net.initParams();
-fldb = get_fldb('sintel');
+net = flownet_init();
+fldb = get_fldb('sintel','func',@setup_fldb_sintel);
 batch_opts = net.meta.normalization;
 batch_opts.mode = 'random';
 [net,stats] = flownet_train(net, fldb, ...
